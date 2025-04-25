@@ -22,9 +22,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _bioController = TextEditingController();
   File? _avatarFile;
+  String? _avatarUrl; // 存储上传后的头像URL
   String? _selectedUserType;
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  String _uploadStatusText = ''; // 用于显示头像上传状态
 
   @override
   void dispose() {
@@ -44,6 +46,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
+  // 处理图片选择和上传结果
+  void _handleImageSelected(File file, String? imageUrl) {
+    setState(() {
+      _avatarFile = file;
+      _avatarUrl = imageUrl;
+    });
+  }
+
+  // 处理上传状态更新
+  void _handleUploadStatusChanged(String status) {
+    setState(() {
+      _uploadStatusText = status;
+    });
+  }
+
   void _register() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -57,8 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text,
           userType: _selectedUserType ?? AppConstants.userTypes[1], // 默认为员工
           userProfile: _bioController.text,
-          avatarFile: _avatarFile,
-          imageUrl: "https://image/214514",
+          imageUrl: _avatarUrl ?? "https://image/214514", // 使用已上传的头像URL或默认URL
         );
 
         setState(() {
@@ -139,14 +155,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 24),
                   
-                  // 头像选择
-                  ImagePickerWidget(
-                    selectedImage: _avatarFile,
-                    onImageSelected: (File file) {
-                      setState(() {
-                        _avatarFile = file;
-                      });
-                    },
+                  // 头像选择和上传
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ImagePickerWidget(
+                        selectedImage: _avatarFile,
+                        imageUrl: _avatarUrl,
+                        onImageSelected: _handleImageSelected,
+                        onUploadStatusChanged: _handleUploadStatusChanged,
+                      ),
+                      
+                      // 头像上传状态提示
+                      if (_uploadStatusText.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Center(
+                            child: Text(
+                              _uploadStatusText,
+                              style: TextStyle(
+                                color: _uploadStatusText.contains('失败') || _uploadStatusText.contains('错误')
+                                    ? Colors.red 
+                                    : _uploadStatusText.contains('成功')
+                                        ? Colors.green
+                                        : AppTheme.primaryColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   
                   // 用户名

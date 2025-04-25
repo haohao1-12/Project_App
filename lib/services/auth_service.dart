@@ -20,7 +20,79 @@ class AuthResponse {
   });
 }
 
+class UploadResponse {
+  final bool success;
+  final String message;
+  final String? imageUrl;
+
+  UploadResponse({
+    required this.success,
+    required this.message,
+    this.imageUrl,
+  });
+}
+
 class AuthService {
+  // 上传图片到阿里云OSS
+  static Future<UploadResponse> uploadImage(File imageFile) async {
+    try {
+      debugPrint('准备上传图片到阿里云OSS...');
+      // 创建multipart请求
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(AppConstants.uploadImageEndpoint),
+      );
+      
+      // 添加文件
+      request.files.add(await http.MultipartFile.fromPath(
+        'file', // 服务器端接收的字段名
+        imageFile.path,
+      ));
+      
+      debugPrint('正在上传图片...');
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      
+      debugPrint('收到上传响应，状态码: ${response.statusCode}');
+      debugPrint('响应体: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+        
+        bool isSuccess = responseData['success'] == true;
+        int code = responseData['code'] ?? 0;
+        String message = responseData['message'] ?? '未知消息';
+        
+        if (isSuccess && code == 200) {
+          // 从data中获取图片URL
+          String? imageUrl = responseData['data'];
+          
+          return UploadResponse(
+            success: true,
+            message: message,
+            imageUrl: imageUrl,
+          );
+        } else {
+          return UploadResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } else {
+        return UploadResponse(
+          success: false,
+          message: '上传失败，状态码: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      debugPrint('上传图片时出错: $e');
+      return UploadResponse(
+        success: false,
+        message: '上传图片错误: $e',
+      );
+    }
+  }
+
   // 注册用户
   static Future<AuthResponse> register({
     required String username,
@@ -28,8 +100,7 @@ class AuthService {
     required String email,
     required String userType,
     required String userProfile,
-    File? avatarFile, // 保留参数，但不再使用
-    String imageUrl = "https://image/214514", // 默认头像URL
+    required String imageUrl, // 直接接收已上传的图片URL
   }) async {
     try {
       // 获取用户类型的整数值
@@ -38,7 +109,7 @@ class AuthService {
       // 显示完整的URL，用于调试
       debugPrint('正在请求URL: ${AppConstants.registerEndpoint}');
       
-      // 创建请求（改为普通的POST请求，不再需要multipart）
+      // 创建请求
       var uri = Uri.parse(AppConstants.registerEndpoint);
       var requestBody = {
         'username': username,
@@ -46,7 +117,7 @@ class AuthService {
         'email': email,
         'userType': userTypeValue.toString(),
         'userProfile': userProfile,
-        'imageUrl': imageUrl,
+        'imageUrl': imageUrl, // 使用传入的URL
       };
 
       // 打印请求体，用于调试
