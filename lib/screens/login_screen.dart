@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 import '../widgets/custom_text_field.dart';
+import '../services/auth_service.dart';
 import 'register_screen.dart';
+import 'home_screen.dart'; // 导入主页面
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -15,11 +17,24 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
   
   @override
   void initState() {
     super.initState();
-    // 这里可以添加页面初始化逻辑
+    // 清除之前的登录数据（仅用于调试阶段）
+    AuthService.clearAllUserData().then((_) {
+      _checkLoggedInStatus();
+    });
+  }
+
+  // 检查用户是否已登录
+  Future<void> _checkLoggedInStatus() async {
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (isLoggedIn && mounted) {
+      // 如果用户已登录，直接进入主页
+      _navigateToHome();
+    }
   }
 
   @override
@@ -27,6 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+  
+  // 前往主页
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+    );
   }
   
   // 去注册页面
@@ -53,6 +77,67 @@ class _LoginScreenState extends State<LoginScreen> {
             const SnackBar(
               content: Text('注册成功，请登录'),
               backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  // 登录方法
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final response = await AuthService.login(
+          username: _usernameController.text,
+          password: _passwordController.text,
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (response.success) {
+          // 登录成功，显示成功消息并跳转到主页
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('登录成功'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+          
+          // 延迟跳转，让用户看到成功消息
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            if (mounted) {
+              _navigateToHome();
+            }
+          });
+        } else {
+          // 登录失败，显示错误消息
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('登录失败: $e'),
+              backgroundColor: Colors.red,
             ),
           );
         }
@@ -136,17 +221,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 
                 // 登录按钮
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // 登录功能后续实现
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('登录功能暂未实现')),
-                      );
-                    }
-                  },
-                  child: const Text('登录'),
-                ),
+                _isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _login,
+                      child: const Text('登录'),
+                    ),
                 
                 const SizedBox(height: 24),
                 

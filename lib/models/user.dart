@@ -1,8 +1,11 @@
+import 'dart:convert';
+import '../utils/encoding_helper.dart';
+
 class User {
   final String? id;
   final String username;
   final String? email;
-  final String? userType;
+  final dynamic userType;
   final String? userProfile;
   final String? imageUrl;
 
@@ -17,15 +20,15 @@ class User {
 
   // 从JSON创建User对象，增加空值处理
   factory User.fromJson(Map<String, dynamic> json) {
-    // 确保至少有用户名，如果没有则使用默认值
-    String username = json['username'] ?? 'unknown_user';
+    // 使用EncodingHelper修复编码问题
+    String username = EncodingHelper.fixEncoding(json['username'] ?? 'unknown_user');
     
     return User(
-      id: json['id'],
+      id: json['id']?.toString(), // 确保id为字符串类型
       username: username,
       email: json['email'],
-      userType: json['userType']?.toString(), // 确保转换为字符串
-      userProfile: json['userProfile'],
+      userType: json['userType'], // 直接接收userType，不进行类型转换
+      userProfile: EncodingHelper.fixEncoding(json['userProfile']),
       imageUrl: json['imageUrl'],
     );
   }
