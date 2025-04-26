@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../screens/project_detail_screen.dart';
+import '../screens/project_detail_manager_screen.dart';
+import '../services/auth_service.dart';
 import '../utils/theme.dart';
 
 class ProjectList extends StatelessWidget {
@@ -189,16 +191,28 @@ class ProjectCard extends StatelessWidget {
                   ],
                 ),
                 TextButton(
-                  onPressed: () {
-                    // 导航到项目详情页面
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProjectDetailScreen(
-                          projectId: project.id,
+                  onPressed: () async {
+                    // 根据用户类型决定使用哪个项目详情页面
+                    final userType = await AuthService.getUserType();
+                    if (userType == '0') { // 项目经理视图
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProjectDetailManagerScreen(
+                            projectId: project.id,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else { // 员工视图
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProjectDetailScreen(
+                            projectId: project.id,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   child: const Text('查看详情'),
                 ),

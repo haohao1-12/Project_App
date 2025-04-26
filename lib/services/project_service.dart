@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/project.dart';
 import '../models/project_detail.dart';
+import '../models/project_detail_manager_view.dart';
 import '../utils/constants.dart';
 import 'auth_service.dart';
 import '../utils/http_utils.dart';
@@ -30,6 +31,30 @@ class ProjectDetailResponse {
     required this.success,
     required this.message,
     this.projectDetail,
+  });
+}
+
+class ProjectDetailManagerResponse {
+  final bool success;
+  final String message;
+  final ProjectDetailManagerView? projectDetail;
+
+  ProjectDetailManagerResponse({
+    required this.success,
+    required this.message,
+    this.projectDetail,
+  });
+}
+
+class ProjectResponse {
+  final bool success;
+  final String message;
+  final Project? project;
+
+  ProjectResponse({
+    required this.success,
+    required this.message,
+    this.project,
   });
 }
 
@@ -112,10 +137,69 @@ class ProjectService {
     }
   }
 
+  // 获取单个项目信息
+  static Future<ProjectResponse> getProject(int projectId) async {
+    try {
+      debugPrint('发送获取单个项目信息请求: projectId=$projectId');
+
+      // 使用HttpUtils工具类发送请求
+      final response = await HttpUtils.get('${AppConstants.projectEndpoint}/$projectId');
+
+      debugPrint('单个项目信息响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          try {
+            final Map<String, dynamic> data = responseData['data'];
+            final project = Project.fromJson(data);
+            
+            debugPrint('成功获取项目信息: ${project.projectName}');
+            
+            return ProjectResponse(
+              success: true,
+              message: message,
+              project: project,
+            );
+          } catch (e) {
+            debugPrint('解析项目数据出错: $e');
+            return ProjectResponse(
+              success: false,
+              message: '解析项目数据失败: $e',
+            );
+          }
+        } else {
+          debugPrint('获取项目信息失败: $message');
+          return ProjectResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析项目信息响应出错: $e');
+        return ProjectResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('获取项目信息过程中发生错误: $e');
+      return ProjectResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
+    }
+  }
+
   // 获取项目详情（成员视图）
   static Future<ProjectDetailResponse> getMemberProjectDetail(int projectId) async {
     try {
-      debugPrint('发送获取项目详情请求: projectId=$projectId');
+      debugPrint('发送获取成员视图项目详情请求: projectId=$projectId');
 
       // 使用HttpUtils工具类发送请求
       final response = await HttpUtils.get('${AppConstants.memberProjectDetailEndpoint}/$projectId');
@@ -135,7 +219,7 @@ class ProjectService {
           try {
             final projectDetail = ProjectDetail.fromJson(data);
             
-            debugPrint('成功获取项目详情: ${projectDetail.projectName}');
+            debugPrint('成功获取成员视图项目详情: ${projectDetail.projectName}');
             
             return ProjectDetailResponse(
               success: true,
@@ -166,6 +250,109 @@ class ProjectService {
     } catch (e) {
       debugPrint('获取项目详情过程中发生错误: $e');
       return ProjectDetailResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
+    }
+  }
+
+  // 获取项目详情（项目经理视图）
+  static Future<ProjectDetailManagerResponse> getManagerProjectDetail(int projectId) async {
+    try {
+      debugPrint('发送获取经理视图项目详情请求: projectId=$projectId');
+
+      // 先获取项目基本信息
+      String projectName = '未命名项目';
+      int status = 0;
+      DateTime deadline = DateTime.now();
+      
+      try {
+        // 尝试获取单个项目信息
+        final projectResponse = await getProject(projectId);
+        if (projectResponse.success && projectResponse.project != null) {
+          final project = projectResponse.project!;
+          projectName = project.projectName;
+          status = project.status;
+          deadline = project.deadline;
+          
+          debugPrint('找到项目基本信息: $projectName, 状态: $status');
+        } else {
+          // 如果无法获取单个项目信息，尝试从项目列表中获取
+          debugPrint('无法获取单个项目信息，尝试从项目列表获取');
+          final projectListResponse = await getProjectList(page: 1, pageSize: 100);
+          if (projectListResponse.success) {
+            // 查找匹配的项目
+            final matchingProjects = projectListResponse.projects.where((p) => p.id == projectId).toList();
+            if (matchingProjects.isNotEmpty) {
+              final project = matchingProjects.first;
+              projectName = project.projectName;
+              status = project.status;
+              deadline = project.deadline;
+              
+              debugPrint('从项目列表中找到项目基本信息: $projectName, 状态: $status');
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('获取项目基本信息失败: $e，将使用默认值');
+      }
+
+      // 使用HttpUtils工具类发送请求
+      final response = await HttpUtils.get('${AppConstants.managerProjectDetailEndpoint}/$projectId');
+
+      debugPrint('经理视图项目详情响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          try {
+            // 补充项目ID和其他必要信息到响应数据
+            final Map<String, dynamic> modifiedData = {
+              'id': projectId,
+              'projectName': projectName,  // 使用从项目列表中获取的名称
+              'status': status,  // 使用从项目列表中获取的状态
+              'deadline': deadline,  // 使用从项目列表中获取的截止日期
+              'data': responseData['data']
+            };
+            
+            final projectDetail = ProjectDetailManagerView.fromJson(modifiedData);
+            
+            debugPrint('成功获取经理视图项目详情，包含 ${projectDetail.tasks.length} 个任务');
+            
+            return ProjectDetailManagerResponse(
+              success: true,
+              message: message,
+              projectDetail: projectDetail,
+            );
+          } catch (e) {
+            debugPrint('解析经理视图项目详情数据出错: $e');
+            return ProjectDetailManagerResponse(
+              success: false,
+              message: '解析项目详情数据失败: $e',
+            );
+          }
+        } else {
+          debugPrint('获取经理视图项目详情失败: $message');
+          return ProjectDetailManagerResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析经理视图项目详情响应出错: $e');
+        return ProjectDetailManagerResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('获取经理视图项目详情过程中发生错误: $e');
+      return ProjectDetailManagerResponse(
         success: false,
         message: '网络请求失败: $e',
       );

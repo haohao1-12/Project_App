@@ -7,7 +7,9 @@ class AppConstants {
   
   // 项目API端点
   static const String projectListEndpoint = '$baseUrl/project/queryProjectList';
+  static const String projectEndpoint = '$baseUrl/project'; // 单个项目信息端点
   static const String memberProjectDetailEndpoint = '$baseUrl/project/memberProjectDetail'; // 成员视图的项目详情端点
+  static const String managerProjectDetailEndpoint = '$baseUrl/project/managerProjectDetail'; // 项目经理视图的项目详情端点
   
   // 用户API端点
   static const String userProfileEndpoint = '$baseUrl/user'; // 用户个人信息端点
