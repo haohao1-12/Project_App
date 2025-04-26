@@ -3,6 +3,8 @@ import '../models/project.dart';
 import '../services/project_service.dart';
 import '../utils/theme.dart';
 import '../widgets/project_list.dart';
+import '../services/auth_service.dart';
+import 'create_project_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   int _currentPage = 1;
   bool _isLoading = true;
   String _errorMessage = '';
+  bool _isManager = false; // 用户是否为项目经理
   
   // 分页常量
   static const int pageSize = 5;
@@ -25,7 +28,17 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   void initState() {
     super.initState();
+    _checkUserType();
     _loadProjects();
+  }
+
+  // 检查用户类型
+  Future<void> _checkUserType() async {
+    String? userType = await AuthService.getUserType();
+    setState(() {
+      _isManager = userType == '0'; // userType为0表示项目经理
+    });
+    debugPrint('当前用户类型: $userType, 是否为项目经理: $_isManager');
   }
 
   // 加载项目数据
@@ -111,19 +124,24 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 isLoading: _isLoading,
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: 实现创建新项目功能
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('创建新项目功能尚未实现'),
-              duration: Duration(seconds: 1),
+      floatingActionButton: _isManager ? FloatingActionButton(
+        onPressed: () async {
+          // 导航到创建项目界面
+          final bool? refreshNeeded = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateProjectScreen(),
             ),
           );
+          
+          // 如果返回true，刷新项目列表
+          if (refreshNeeded == true) {
+            _refreshProjects();
+          }
         },
         backgroundColor: AppTheme.primaryColor,
         child: const Icon(Icons.add),
-      ),
+      ) : null, // 如果不是项目经理，则不显示添加按钮
     );
   }
 

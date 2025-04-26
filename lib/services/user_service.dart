@@ -31,6 +31,18 @@ class UserResponse {
   });
 }
 
+class QueryUserByNameResponse {
+  final bool success;
+  final String message;
+  final int? userId;
+
+  QueryUserByNameResponse({
+    required this.success,
+    required this.message,
+    this.userId,
+  });
+}
+
 class UserService {
   // 获取当前登录用户的个人信息
   static Future<UserProfileResponse> getUserProfile() async {
@@ -204,6 +216,59 @@ class UserService {
       }
     } catch (e) {
       throw Exception('获取用户列表失败: $e');
+    }
+  }
+
+  // 根据用户名查询用户
+  static Future<QueryUserByNameResponse> queryUserByName(String userName) async {
+    try {
+      debugPrint('发送根据用户名查询用户请求: userName=$userName');
+
+      // 使用HttpUtils工具类发送GET请求
+      final response = await HttpUtils.get(
+        '${AppConstants.baseUrl}/user/queryByName',
+        queryParams: {'userName': userName},
+      );
+
+      debugPrint('查询用户响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          final int? userId = responseData['data'];
+          
+          debugPrint('成功查询到用户，ID: $userId');
+          
+          return QueryUserByNameResponse(
+            success: true,
+            message: message,
+            userId: userId,
+          );
+        } else {
+          debugPrint('查询用户失败: $message');
+          return QueryUserByNameResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析查询用户响应出错: $e');
+        return QueryUserByNameResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('查询用户过程中发生错误: $e');
+      return QueryUserByNameResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
     }
   }
 }

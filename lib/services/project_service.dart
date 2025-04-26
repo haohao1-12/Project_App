@@ -58,6 +58,28 @@ class ProjectResponse {
   });
 }
 
+class AddProjectResponse {
+  final bool success;
+  final String message;
+  final int? projectId;
+
+  AddProjectResponse({
+    required this.success,
+    required this.message,
+    this.projectId,
+  });
+}
+
+class AddTaskResponse {
+  final bool success;
+  final String message;
+
+  AddTaskResponse({
+    required this.success,
+    required this.message,
+  });
+}
+
 class ProjectService {
   // 获取项目列表
   static Future<ProjectListResponse> getProjectList({required int page, int pageSize = 5}) async {
@@ -362,6 +384,143 @@ class ProjectService {
   // 帮助方法：计算总页数
   static int calculateTotalPages(int totalItems, int pageSize) {
     return (totalItems / pageSize).ceil();
+  }
+  
+  // 添加项目
+  static Future<AddProjectResponse> addProject({
+    required String projectName,
+    required DateTime deadline,
+  }) async {
+    try {
+      debugPrint('发送创建项目请求: projectName=$projectName, deadline=$deadline');
+
+      // 格式化截止日期为"yyyy-MM-dd HH:mm:ss"格式
+      String formattedDeadline = "${deadline.year}-"
+          "${deadline.month.toString().padLeft(2, '0')}-"
+          "${deadline.day.toString().padLeft(2, '0')} "
+          "00:00:00";
+
+      // 使用HttpUtils工具类发送请求
+      final requestBody = {
+        'projectName': projectName,
+        'deadline': formattedDeadline,
+      };
+      
+      debugPrint('创建项目请求体: $requestBody');
+      final response = await HttpUtils.post(
+        '${AppConstants.baseUrl}/project/addProject',
+        body: requestBody,
+      );
+
+      debugPrint('创建项目响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          final int? projectId = responseData['data'];
+          
+          debugPrint('成功创建项目，ID: $projectId');
+          
+          return AddProjectResponse(
+            success: true,
+            message: message,
+            projectId: projectId,
+          );
+        } else {
+          debugPrint('创建项目失败: $message');
+          return AddProjectResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析创建项目响应出错: $e');
+        return AddProjectResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('创建项目过程中发生错误: $e');
+      return AddProjectResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
+    }
+  }
+  
+  // 添加任务
+  static Future<AddTaskResponse> addTask({
+    required String taskName,
+    required int assignedTo,
+    required int projectId,
+    required DateTime deadline,
+  }) async {
+    try {
+      debugPrint('发送创建任务请求: taskName=$taskName, assignedTo=$assignedTo, projectId=$projectId, deadline=$deadline');
+
+      // 格式化截止日期为"yyyy-MM-dd HH:mm:ss"格式
+      String formattedDeadline = "${deadline.year}-"
+          "${deadline.month.toString().padLeft(2, '0')}-"
+          "${deadline.day.toString().padLeft(2, '0')} "
+          "00:00:00";
+
+      // 使用HttpUtils工具类发送请求
+      final requestBody = {
+        'taskName': taskName,
+        'assignedTo': assignedTo,
+        'projectId': projectId,
+        'deadline': formattedDeadline,
+      };
+      
+      debugPrint('创建任务请求体: $requestBody');
+      final response = await HttpUtils.post(
+        '${AppConstants.baseUrl}/task/addTask',
+        body: requestBody,
+      );
+
+      debugPrint('创建任务响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          debugPrint('成功创建任务');
+          
+          return AddTaskResponse(
+            success: true,
+            message: message,
+          );
+        } else {
+          debugPrint('创建任务失败: $message');
+          return AddTaskResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析创建任务响应出错: $e');
+        return AddTaskResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('创建任务过程中发生错误: $e');
+      return AddTaskResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
+    }
   }
 }
 
