@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/project.dart';
+import '../screens/project_detail_screen.dart';
 import '../utils/theme.dart';
 
 class ProjectList extends StatelessWidget {
@@ -189,11 +190,13 @@ class ProjectCard extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    // TODO: 实现查看项目详情功能
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('查看项目详情: ${project.projectName}'),
-                        duration: const Duration(seconds: 1),
+                    // 导航到项目详情页面
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProjectDetailScreen(
+                          projectId: project.id,
+                        ),
                       ),
                     );
                   },

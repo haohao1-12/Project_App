@@ -152,11 +152,7 @@ class AuthService {
           
           debugPrint('用户数据: $userData');
           
-          String? token = responseData['token'] as String?;
-          // 如果token不在顶层，尝试从userData中获取
-          if (token == null && userData != null && userData['token'] != null) {
-            token = userData['token'] as String?;
-          }
+          String? token = userData['token'] as String?;
           
           if (userData != null) {
             // 详细打印userData的所有键值对，便于调试
@@ -440,24 +436,62 @@ class AuthService {
       final userJson = json.encode(user.toJson());
       debugPrint('保存用户信息: $userJson');
       
-      // 保存用户信息和token
+      // 保存用户信息、token、用户ID和userType
       await prefs.setString(AppConstants.userKey, userJson);
       await prefs.setString(AppConstants.tokenKey, token);
       
-      debugPrint('用户信息和token保存成功');
+      // 保存用户ID和用户类型
+      if (user.id != null) {
+        await prefs.setString(AppConstants.userIdKey, user.id.toString());
+        debugPrint('保存用户ID: ${user.id}');
+      }
+      
+      if (user.userType != null) {
+        // userType可能是各种类型，统一转为字符串存储
+        await prefs.setString(AppConstants.userTypeKey, user.userType.toString());
+        debugPrint('保存用户类型: ${user.userType}');
+      }
+      
+      debugPrint('用户信息、token、ID和类型保存成功');
     } catch (e, stackTrace) {
-      debugPrint('保存用户信息和token失败: $e');
+      debugPrint('保存用户信息失败: $e');
       debugPrint('错误堆栈: $stackTrace');
       rethrow; // 重新抛出异常，以便调用者知道发生了错误
     }
   }
 
-  // 清除所有存储的用户数据（用于调试）
+  // 获取当前用户ID
+  static Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.userIdKey);
+  }
+
+  // 获取当前用户类型
+  static Future<String?> getUserType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.userTypeKey);
+  }
+
+  // 获取用户类型的文本表示
+  static String getUserTypeText(dynamic userType) {
+    // 处理各种可能的userType格式
+    if (userType == 0 || userType == '0') {
+      return '项目经理';
+    } else if (userType == 1 || userType == '1') {
+      return '员工';
+    } else {
+      return '未知身份';
+    }
+  }
+
+  // 清除所有存储的用户数据（用于调试和登出）
   static Future<void> clearAllUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(AppConstants.userKey);
       await prefs.remove(AppConstants.tokenKey);
+      await prefs.remove(AppConstants.userIdKey);
+      await prefs.remove(AppConstants.userTypeKey);
       debugPrint('已清除所有用户数据');
     } catch (e) {
       debugPrint('清除用户数据失败: $e');

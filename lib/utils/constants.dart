@@ -7,6 +7,10 @@ class AppConstants {
   
   // 项目API端点
   static const String projectListEndpoint = '$baseUrl/project/queryProjectList';
+  static const String memberProjectDetailEndpoint = '$baseUrl/project/memberProjectDetail'; // 成员视图的项目详情端点
+  
+  // 用户API端点
+  static const String userProfileEndpoint = '$baseUrl/user'; // 用户个人信息端点
   
   // 用户类型
   static const List<String> userTypes = ['项目经理', '员工'];
@@ -24,6 +28,8 @@ class AppConstants {
   // 存储键
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_info';
+  static const String userIdKey = 'user_id'; // 用户ID存储键
+  static const String userTypeKey = 'user_type'; // 用户类型存储键
   
   // 错误信息
   static const String networkErrorMessage = '网络连接错误，请检查您的网络连接';
