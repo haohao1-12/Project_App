@@ -248,17 +248,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 ),
                 const SizedBox(height: 20),
                 
-                // 项目ID（只读）
-                TextFormField(
-                  initialValue: widget.projectId.toString(),
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: '项目ID',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
                 const Text(
                   '截止日期',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
