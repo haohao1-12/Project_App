@@ -124,7 +124,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         _buildAvatar(),
         const SizedBox(height: 16),
         Text(
-          _userDetail!.userName,
+          _userDetail!.username,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -158,24 +158,15 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   Widget _buildUserTypeChip() {
     Color chipColor;
-    String userTypeText;
+    String userTypeText = _userDetail!.getUserTypeText();
 
-    switch (_userDetail!.userType) {
-      case 1:
-        chipColor = Colors.purple;
-        userTypeText = '管理员';
-        break;
-      case 2:
-        chipColor = Colors.blue;
-        userTypeText = '项目经理';
-        break;
-      case 3:
-        chipColor = Colors.green;
-        userTypeText = '团队成员';
-        break;
-      default:
-        chipColor = Colors.grey;
-        userTypeText = '未知';
+    // 根据用户类型设置不同颜色
+    if (_userDetail!.userType == 0 || _userDetail!.userType == '0') {
+      chipColor = Colors.blue;  // 项目经理
+    } else if (_userDetail!.userType == 1 || _userDetail!.userType == '1') {
+      chipColor = Colors.green; // 员工
+    } else {
+      chipColor = Colors.grey;  // 未知身份
     }
 
     return Container(

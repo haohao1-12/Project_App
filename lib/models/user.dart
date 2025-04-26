@@ -5,7 +5,7 @@ class User {
   final String? id;
   final String username;
   final String? email;
-  final dynamic userType;
+  final dynamic userType; // 保持为动态类型以处理不同格式
   final String? userProfile;
   final String? imageUrl;
 
@@ -28,11 +28,18 @@ class User {
       usernameValue = EncodingHelper.fixEncoding(json['username'] ?? 'unknown_user');
     }
     
+    // 处理userType可能是数字或字符串的情况
+    dynamic userTypeValue = json['userType'];
+    // 确保即使是字符串的数字也能被正确解析
+    if (userTypeValue is String && (userTypeValue == '0' || userTypeValue == '1')) {
+      userTypeValue = int.tryParse(userTypeValue) ?? userTypeValue;
+    }
+    
     return User(
       id: json['id']?.toString(), // 确保id为字符串类型
       username: usernameValue,
       email: json['email'],
-      userType: json['userType'], // 直接接收userType，不进行类型转换
+      userType: userTypeValue, // 使用处理过的userType
       userProfile: EncodingHelper.fixEncoding(json['userProfile']),
       imageUrl: json['imageUrl'],
     );
@@ -60,5 +67,17 @@ class User {
       'userProfile': userProfile,
       'imageUrl': imageUrl,
     };
+  }
+  
+  // 获取用户类型的文本表示
+  String getUserTypeText() {
+    // 处理各种可能的userType格式
+    if (userType == 0 || userType == '0') {
+      return '项目经理';
+    } else if (userType == 1 || userType == '1') {
+      return '员工';
+    } else {
+      return '未知身份';
+    }
   }
 } 

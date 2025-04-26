@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
+import '../utils/http_utils.dart';
 
 class AuthResponse {
   final bool success;
@@ -90,6 +91,8 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.tokenKey);
     await prefs.remove(AppConstants.userKey);
+    await prefs.remove(AppConstants.userIdKey);
+    await prefs.remove(AppConstants.userTypeKey);
   }
 
   // 登录用户
@@ -102,7 +105,6 @@ class AuthService {
       debugPrint('正在请求URL: ${AppConstants.loginEndpoint}');
       
       // 创建请求
-      var uri = Uri.parse(AppConstants.loginEndpoint);
       var requestBody = {
         'username': username,
         'password': password,
@@ -111,32 +113,18 @@ class AuthService {
       // 打印请求体，用于调试
       debugPrint('请求体: $requestBody');
 
-      // 发送请求
+      // 发送请求，使用HttpUtils
       debugPrint('发送请求...');
-      var response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json; charset=utf-8',
-          'Accept-Charset': 'utf-8',
-        },
-        body: json.encode(requestBody),
+      var response = await HttpUtils.post(
+        AppConstants.loginEndpoint,
+        body: requestBody,
       );
+      
       debugPrint('收到响应，状态码: ${response.statusCode}');
       
-      // 尝试使用UTF-8解码响应体
-      String responseBody;
-      try {
-        responseBody = utf8.decode(response.bodyBytes);
-        debugPrint('UTF-8解码后响应体: $responseBody');
-      } catch (e) {
-        debugPrint('UTF-8解码失败，使用原始响应体');
-        responseBody = response.body;
-      }
-
       // 解析响应
       try {
-        var responseData = json.decode(responseBody);
+        var responseData = HttpUtils.parseResponse(response);
         
         // 检查响应是否成功
         bool isSuccess = responseData['success'] == true;
@@ -200,7 +188,7 @@ class AuthService {
         debugPrint('错误堆栈: $stackTrace');
         return AuthResponse(
           success: false,
-          message: '解析响应失败: $responseBody',
+          message: '解析响应失败',
         );
       }
     } catch (e, stackTrace) {
@@ -224,10 +212,7 @@ class AuthService {
       );
       
       // 添加头部，指定编码
-      request.headers.addAll({
-        'Accept': 'application/json; charset=utf-8',
-        'Accept-Charset': 'utf-8',
-      });
+      request.headers.addAll(await HttpUtils.getAuthHeaders());
       
       // 添加文件
       request.files.add(await http.MultipartFile.fromPath(
@@ -241,18 +226,8 @@ class AuthService {
       
       debugPrint('收到上传响应，状态码: ${response.statusCode}');
       
-      // 尝试使用UTF-8解码响应体
-      String responseBody;
-      try {
-        responseBody = utf8.decode(response.bodyBytes);
-        debugPrint('UTF-8解码后响应体: $responseBody');
-      } catch (e) {
-        debugPrint('UTF-8解码失败，使用原始响应体');
-        responseBody = response.body;
-      }
-      
       if (response.statusCode == 200) {
-        var responseData = json.decode(responseBody);
+        var responseData = HttpUtils.parseResponse(response);
         
         bool isSuccess = responseData['success'] == true;
         int code = responseData['code'] ?? 0;
@@ -306,7 +281,6 @@ class AuthService {
       debugPrint('正在请求URL: ${AppConstants.registerEndpoint}');
       
       // 创建请求
-      var uri = Uri.parse(AppConstants.registerEndpoint);
       var requestBody = {
         'username': username,
         'password': password,
@@ -319,32 +293,18 @@ class AuthService {
       // 打印请求体，用于调试
       debugPrint('请求体: $requestBody');
 
-      // 发送请求
+      // 发送请求，使用HttpUtils
       debugPrint('发送请求...');
-      var response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Accept': 'application/json; charset=utf-8',
-          'Accept-Charset': 'utf-8',
-        },
-        body: json.encode(requestBody),
+      var response = await HttpUtils.post(
+        AppConstants.registerEndpoint,
+        body: requestBody,
       );
+      
       debugPrint('收到响应，状态码: ${response.statusCode}');
       
-      // 尝试使用UTF-8解码响应体
-      String responseBody;
-      try {
-        responseBody = utf8.decode(response.bodyBytes);
-        debugPrint('UTF-8解码后响应体: $responseBody');
-      } catch (e) {
-        debugPrint('UTF-8解码失败，使用原始响应体');
-        responseBody = response.body;
-      }
-
       // 解析响应
       try {
-        var responseData = json.decode(responseBody);
+        var responseData = HttpUtils.parseResponse(response);
         
         // 检查响应是否成功
         bool isSuccess = responseData['success'] == true;
@@ -386,7 +346,7 @@ class AuthService {
         debugPrint('错误堆栈: $stackTrace');
         return AuthResponse(
           success: false,
-          message: '解析响应失败: $responseBody',
+          message: '解析响应失败',
         );
       }
     } catch (e, stackTrace) {

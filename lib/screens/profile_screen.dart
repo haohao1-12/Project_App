@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             child: Text(
-              AuthService.getUserTypeText(_user!.userType),
+              _user!.getUserTypeText(),
               style: TextStyle(
                 color: _getUserTypeColor(),
                 fontWeight: FontWeight.w600,
