@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../models/user.dart';
 import '../utils/encoding_helper.dart';
 import 'login_screen.dart';
+import 'project_list_screen.dart';  // 导入项目列表页面
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -145,67 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 项目列表页面
   Widget _buildProjectsPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.folder_open,
-            size: 80,
-            color: AppTheme.primaryColor,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '项目列表',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '您当前是${_getUserTypeText()}，${_getUserTypeText() == "项目经理" ? "可以创建和管理项目" : "可以查看分配给您的项目"}',
-            style: const TextStyle(
-              color: AppTheme.textSecondaryColor,
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: 跳转到项目列表页面
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('功能开发中...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-            icon: const Icon(Icons.search),
-            label: const Text('查看所有项目'),
-          ),
-          if (_getUserTypeText() == "项目经理")
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: 跳转到创建项目页面
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('功能开发中...'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('创建新项目'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.secondaryColor,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+    // 直接返回项目列表页面
+    return const ProjectListScreen();
   }
 
   // 任务列表页面

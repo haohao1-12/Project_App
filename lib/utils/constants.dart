@@ -5,11 +5,20 @@ class AppConstants {
   static const String loginEndpoint = '$baseUrl/user/login';
   static const String uploadImageEndpoint = '$baseUrl/common/upload';
   
+  // 项目API端点
+  static const String projectListEndpoint = '$baseUrl/project/queryProjectList';
+  
   // 用户类型
   static const List<String> userTypes = ['项目经理', '员工'];
   static const Map<String, int> userTypeValues = {
     '项目经理': 0,
     '员工': 1,
+  };
+
+  // 项目状态
+  static const Map<int, String> projectStatusText = {
+    0: '进行中',
+    1: '已完成',
   };
 
   // 存储键
