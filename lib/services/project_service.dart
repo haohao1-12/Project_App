@@ -80,6 +80,17 @@ class AddTaskResponse {
   });
 }
 
+// 批量创建任务响应
+class AddBatchTasksResponse {
+  final bool success;
+  final String message;
+
+  AddBatchTasksResponse({
+    required this.success,
+    required this.message,
+  });
+}
+
 class ProjectService {
   // 获取项目列表
   static Future<ProjectListResponse> getProjectList({required int page, int pageSize = 5}) async {
@@ -517,6 +528,57 @@ class ProjectService {
     } catch (e) {
       debugPrint('创建任务过程中发生错误: $e');
       return AddTaskResponse(
+        success: false,
+        message: '网络请求失败: $e',
+      );
+    }
+  }
+
+  // 批量添加任务
+  static Future<AddBatchTasksResponse> addBatchTasks(List<Map<String, dynamic>> tasks) async {
+    try {
+      debugPrint('发送批量创建任务请求: ${tasks.length} 个任务');
+
+      // 使用HttpUtils工具类发送请求
+      final response = await HttpUtils.post(
+        AppConstants.addBatchTaskEndpoint,
+        bodyList: tasks,
+        isList: true,
+      );
+
+      debugPrint('批量创建任务响应状态码: ${response.statusCode}');
+
+      // 解析响应
+      try {
+        final responseData = HttpUtils.parseResponse(response);
+        
+        final bool success = responseData['success'] == true;
+        final String message = responseData['message'] ?? '未知消息';
+        
+        if (HttpUtils.isSuccessful(responseData)) {
+          debugPrint('成功批量创建任务');
+          
+          return AddBatchTasksResponse(
+            success: true,
+            message: message,
+          );
+        } else {
+          debugPrint('批量创建任务失败: $message');
+          return AddBatchTasksResponse(
+            success: false,
+            message: message,
+          );
+        }
+      } catch (e) {
+        debugPrint('解析批量创建任务响应出错: $e');
+        return AddBatchTasksResponse(
+          success: false,
+          message: '解析响应数据失败: $e',
+        );
+      }
+    } catch (e) {
+      debugPrint('批量创建任务过程中发生错误: $e');
+      return AddBatchTasksResponse(
         success: false,
         message: '网络请求失败: $e',
       );

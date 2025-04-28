@@ -11,6 +11,10 @@ class AppConstants {
   static const String memberProjectDetailEndpoint = '$baseUrl/project/memberProjectDetail'; // 成员视图的项目详情端点
   static const String managerProjectDetailEndpoint = '$baseUrl/project/managerProjectDetail'; // 项目经理视图的项目详情端点
   
+  // 任务API端点
+  static const String addTaskEndpoint = '$baseUrl/task/addTask'; // 创建单个任务端点
+  static const String addBatchTaskEndpoint = '$baseUrl/task/addBatchTask'; // 批量创建任务端点
+  
   // 用户API端点
   static const String userProfileEndpoint = '$baseUrl/user'; // 用户个人信息端点
   

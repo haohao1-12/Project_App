@@ -41,12 +41,24 @@ class HttpUtils {
   /// 发送POST请求
   static Future<http.Response> post(
     String endpoint, {
-    Map<String, dynamic>? queryParams,
-    dynamic body,
+    Map<String, dynamic>? body,
+    List<Map<String, dynamic>>? bodyList,
+    bool isList = false,
   }) async {
     final headers = await getAuthHeaders();
-    final uri = _buildUri(endpoint, queryParams);
-    final encodedBody = body != null ? json.encode(body) : null;
+    final uri = _buildUri(endpoint, null);
+    
+    dynamic encodedBody;
+    if (isList && bodyList != null) {
+      // 如果是列表类型，直接将列表JSON序列化
+      encodedBody = json.encode(bodyList);
+    } else if (isList && body != null) {
+      // 如果是列表类型但使用body参数
+      encodedBody = json.encode(body);
+    } else {
+      // 普通对象
+      encodedBody = body != null ? json.encode(body) : null;
+    }
     
     _logRequest('POST', uri, headers: headers, body: encodedBody);
     
@@ -215,6 +227,12 @@ class HttpUtils {
       filtered['token'] = '***FILTERED***';
     }
     return filtered;
+  }
+
+  /// 获取Token
+  static Future<String> _getToken() async {
+    final token = await AuthService.getToken();
+    return token ?? '';
   }
 }
 
