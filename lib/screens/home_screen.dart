@@ -105,10 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
       _buildTasksPage(),
       _buildProfilePage(),
     ];
+    
+    // 根据当前选中的索引确定标题
+    final List<String> _titles = const [
+      '项目列表',
+      '任务列表',
+      '个人主页',
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('项目管理系统'),
+        title: Text(_titles[_currentIndex]),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
