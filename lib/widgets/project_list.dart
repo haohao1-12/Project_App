@@ -52,51 +52,54 @@ class ProjectList extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              final project = projects[index];
-              return ProjectCard(project: project);
-            },
+    // 创建项目列表项
+    List<Widget> listItems = [];
+    
+    // 添加项目卡片
+    for (int i = 0; i < projects.length; i++) {
+      listItems.add(ProjectCard(project: projects[i]));
+    }
+    
+    // 如果有多个页面，添加分页控件
+    if (totalPages > 1) {
+      listItems.add(
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: currentPage > 1 
+                    ? () => onPageChanged(currentPage - 1)
+                    : null,
+                color: currentPage > 1 ? AppTheme.primaryColor : Colors.grey,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$currentPage / $totalPages',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios),
+                onPressed: currentPage < totalPages 
+                    ? () => onPageChanged(currentPage + 1)
+                    : null,
+                color: currentPage < totalPages ? AppTheme.primaryColor : Colors.grey,
+              ),
+            ],
           ),
-        ),
-        if (totalPages > 1)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios),
-                  onPressed: currentPage > 1 
-                      ? () => onPageChanged(currentPage - 1)
-                      : null,
-                  color: currentPage > 1 ? AppTheme.primaryColor : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$currentPage / $totalPages',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios),
-                  onPressed: currentPage < totalPages 
-                      ? () => onPageChanged(currentPage + 1)
-                      : null,
-                  color: currentPage < totalPages ? AppTheme.primaryColor : Colors.grey,
-                ),
-              ],
-            ),
-          ),
-      ],
+        )
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: listItems,
     );
   }
 }
