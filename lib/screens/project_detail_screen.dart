@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/project_detail.dart';
 import '../models/task.dart';
 import '../services/project_service.dart';
+import '../services/task_service.dart';
 import '../utils/theme.dart';
 import 'user_detail_screen.dart';
 
@@ -81,6 +82,65 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
+  // 更新任务状态
+  Future<void> _updateTaskStatus(Task task) async {
+    if (!mounted) return;
+    
+    // 显示加载指示器
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final response = await TaskService.updateTaskStatus(
+        taskId: task.id,
+        projectId: _projectDetail!.id,
+        status: 1, // 将状态更新为已完成
+      );
+
+      if (!mounted) return;
+      
+      // 关闭加载指示器
+      Navigator.pop(context);
+      
+      if (response.success) {
+        // 更新成功，显示成功提示并刷新项目详情
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('任务已标记为完成'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _refreshProjectDetail();
+      } else {
+        // 更新失败，显示错误信息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('更新任务状态失败: ${response.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      // 关闭加载指示器
+      Navigator.pop(context);
+      
+      // 显示错误信息
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('更新任务状态出错: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,21 +175,38 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       );
     }
 
+    // 使用CustomScrollView代替嵌套的SingleChildScrollView
     return RefreshIndicator(
       onRefresh: _refreshProjectDetail,
-      child: SingleChildScrollView(
+      child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProjectHeader(),
-            const Divider(height: 32),
-            _buildProjectInfo(),
-            const SizedBox(height: 24),
-            _buildTaskListSection(),
-          ],
-        ),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildProjectHeader(),
+                const Divider(height: 32),
+                _buildProjectInfo(),
+                const SizedBox(height: 24),
+                // 任务标题
+                const Text(
+                  '我的任务',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 空任务或任务列表
+                if (_projectDetail!.taskList.isEmpty)
+                  _buildEmptyTasksView()
+                else
+                  ..._projectDetail!.taskList.map((task) => _buildTaskCard(task)).toList(),
+              ]),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -322,40 +399,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
-  // 构建任务列表部分
-  Widget _buildTaskListSection() {
-    final myTasks = _projectDetail!.taskList;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '我的任务',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (myTasks.isEmpty)
-          _buildEmptyTasksView()
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: myTasks.length,
-            itemBuilder: (context, index) => _buildTaskCard(myTasks[index]),
-          ),
-      ],
-    );
-  }
-
   // 构建空任务视图
   Widget _buildEmptyTasksView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.task_alt,
@@ -454,6 +504,28 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 ),
               ],
             ),
+            // 仅当任务状态为进行中(0)时显示完成按钮
+            if (task.status == 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _updateTaskStatus(task),
+                    icon: const Icon(Icons.check_circle_outline, size: 16),
+                    label: const Text('标记为完成'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      textStyle: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -462,35 +534,42 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   // 构建错误视图
   Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red[300],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.red,
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[300],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _refreshProjectDetail,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('重试'),
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _refreshProjectDetail,
-              icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 } 
