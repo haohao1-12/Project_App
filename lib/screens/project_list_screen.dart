@@ -102,16 +102,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('项目列表'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshProjects,
-            tooltip: '刷新',
-          ),
-        ],
-      ),
       body: _errorMessage.isNotEmpty
           ? _buildErrorView()
           : RefreshIndicator(

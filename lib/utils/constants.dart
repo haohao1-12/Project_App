@@ -43,7 +43,7 @@ class AppConstants {
   static const String unknownErrorMessage = '发生未知错误，请稍后再试';
   
   // 表单验证规则
-  static const int userNameMinLength = 3;
+  static const int userNameMinLength = 2;
   static const int userNameMaxLength = 20;
   static const int passwordMinLength = 6;
   static const int passwordMaxLength = 20;

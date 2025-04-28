@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import '../utils/theme.dart';
 import 'edit_profile_screen.dart';
+import 'login_screen.dart';  // 导入登录页面
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -81,23 +82,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('个人主页'),
-        actions: [
-          // 添加编辑按钮
-          if (!_isLoading && _user != null)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _navigateToEditProfile,
-              tooltip: '编辑资料',
-            ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshUserProfile,
-            tooltip: '刷新',
-          ),
-        ],
-      ),
       body: _buildBody(),
     );
   }
@@ -138,6 +122,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: _navigateToEditProfile,
                   icon: const Icon(Icons.edit),
                   label: const Text('编辑个人资料'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // 添加退出登录按钮
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text('退出登录'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[400],
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -323,5 +321,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  // 退出登录
+  Future<void> _logout() async {
+    // 显示确认对话框
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认退出'),
+        content: const Text('确定要退出登录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await AuthService.logout();
+        // 退出登录后跳转到登录页面
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false, // 清除所有路由历史
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('退出登录失败: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 } 
