@@ -3,7 +3,7 @@ import '../utils/encoding_helper.dart';
 
 class User {
   final String? id;
-  final String username;
+  final String userName;
   final String? email;
   final dynamic userType; // 保持为动态类型以处理不同格式
   final String? userProfile;
@@ -11,21 +11,21 @@ class User {
 
   User({
     this.id,
-    required this.username,
+    required this.userName,
     this.email,
     this.userType,
     this.userProfile,
     this.imageUrl,
   });
 
-  // 从JSON创建User对象，增加空值处理，同时处理username和userName两种字段名
+  // 从JSON创建User对象，增加空值处理，同时处理userName和username两种字段名
   factory User.fromJson(Map<String, dynamic> json) {
     // 优先使用userName字段，如果不存在则使用username字段
-    String usernameValue;
+    String userNameValue;
     if (json.containsKey('userName')) {
-      usernameValue = EncodingHelper.fixEncoding(json['userName'] ?? 'unknown_user');
+      userNameValue = EncodingHelper.fixEncoding(json['userName'] ?? 'unknown_user');
     } else {
-      usernameValue = EncodingHelper.fixEncoding(json['username'] ?? 'unknown_user');
+      userNameValue = EncodingHelper.fixEncoding(json['username'] ?? 'unknown_user');
     }
     
     // 处理userType可能是数字或字符串的情况
@@ -37,7 +37,7 @@ class User {
     
     return User(
       id: json['id']?.toString(), // 确保id为字符串类型
-      username: usernameValue,
+      userName: userNameValue,
       email: json['email'],
       userType: userTypeValue, // 使用处理过的userType
       userProfile: EncodingHelper.fixEncoding(json['userProfile']),
@@ -49,7 +49,7 @@ class User {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'username': username,
+      'userName': userName,
       'email': email,
       'userType': userType,
       'userProfile': userProfile,
@@ -60,7 +60,7 @@ class User {
   // 创建注册请求JSON
   Map<String, dynamic> toRegisterJson(String password) {
     return {
-      'username': username,
+      'userName': userName,
       'password': password,
       'email': email,
       'userType': userType,

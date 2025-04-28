@@ -17,7 +17,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _userNameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
   final _bioController = TextEditingController();
@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _userNameController.dispose();
     _passwordController.dispose();
     _emailController.dispose();
     _bioController.dispose();
@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _navigateBackToLogin(BuildContext context) {
     // 返回到登录页面，并传递用户名
     Navigator.of(context).pop({
-      'username': _usernameController.text,
+      'userName': _userNameController.text,
       'registered': true,
     });
   }
@@ -69,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         final response = await AuthService.register(
-          username: _usernameController.text,
+          userName: _userNameController.text,
           password: _passwordController.text,
           email: _emailController.text,
           userType: _selectedUserType ?? AppConstants.userTypes[1], // 默认为员工
@@ -191,16 +191,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   CustomTextField(
                     label: '用户名',
                     hint: '请输入用户名',
-                    controller: _usernameController,
+                    controller: _userNameController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '请输入用户名';
                       }
-                      if (value.length < AppConstants.usernameMinLength) {
-                        return '用户名至少${AppConstants.usernameMinLength}个字符';
+                      if (value.length < AppConstants.userNameMinLength) {
+                        return '用户名至少${AppConstants.userNameMinLength}个字符';
                       }
-                      if (value.length > AppConstants.usernameMaxLength) {
-                        return '用户名不能超过${AppConstants.usernameMaxLength}个字符';
+                      if (value.length > AppConstants.userNameMaxLength) {
+                        return '用户名不能超过${AppConstants.userNameMaxLength}个字符';
                       }
                       return null;
                     },

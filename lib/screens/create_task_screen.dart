@@ -147,6 +147,13 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('创建任务'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _addNewTask,
+            tooltip: '添加新任务',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -169,7 +176,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             child: _tasks.isEmpty
                 ? const Center(
                     child: Text(
-                      '点击右下角的"+"添加任务',
+                      '点击右上角的"+"添加任务',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   )
@@ -207,11 +214,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addNewTask,
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
       ),
     );
   }

@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
 import '../utils/theme.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -60,12 +61,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _loadUserProfile();
   }
 
+  // 跳转到编辑个人资料页面
+  Future<void> _navigateToEditProfile() async {
+    if (_user == null) return;
+    
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(user: _user!),
+      ),
+    );
+    
+    // 如果成功更新，刷新个人资料
+    if (result == true) {
+      _refreshUserProfile();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('个人主页'),
         actions: [
+          // 添加编辑按钮
+          if (!_isLoading && _user != null)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: _navigateToEditProfile,
+              tooltip: '编辑资料',
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshUserProfile,
@@ -105,6 +130,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildProfileHeader(),
               const SizedBox(height: 24),
               _buildProfileInfo(),
+              const SizedBox(height: 24),
+              // 添加编辑按钮
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToEditProfile,
+                  icon: const Icon(Icons.edit),
+                  label: const Text('编辑个人资料'),
+                ),
+              ),
             ],
           ),
         ),
@@ -135,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           // 用户名
           Text(
-            _user!.username,
+            _user!.userName,
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,

@@ -124,7 +124,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         _buildAvatar(),
         const SizedBox(height: 16),
         Text(
-          _userDetail!.username,
+          _userDetail!.userName,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

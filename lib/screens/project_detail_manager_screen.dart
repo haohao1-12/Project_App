@@ -4,6 +4,7 @@ import '../models/task_manager_view.dart';
 import '../services/project_service.dart';
 import '../utils/theme.dart';
 import 'user_detail_screen.dart';
+import 'create_task_screen.dart';
 
 class ProjectDetailManagerScreen extends StatefulWidget {
   final int projectId;
@@ -79,6 +80,23 @@ class _ProjectDetailManagerScreenState extends State<ProjectDetailManagerScreen>
     );
   }
 
+  // 批量添加任务
+  void _addTasks() async {
+    final bool? refreshNeeded = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateTaskScreen(
+          projectId: widget.projectId,
+        ),
+      ),
+    );
+    
+    // 如果返回true，刷新项目详情
+    if (refreshNeeded == true) {
+      _refreshProjectDetail();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +111,12 @@ class _ProjectDetailManagerScreenState extends State<ProjectDetailManagerScreen>
         ],
       ),
       body: _buildBody(),
+      floatingActionButton: _isLoading || _projectDetail == null ? null : FloatingActionButton(
+        onPressed: _addTasks,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add),
+        tooltip: '批量添加任务',
+      ),
     );
   }
 

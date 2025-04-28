@@ -60,7 +60,7 @@ class AuthService {
           
           // 构建User对象
           final user = User.fromJson(userData);
-          debugPrint('成功获取用户: ${user.username}, 类型: ${user.userType}');
+          debugPrint('成功获取用户: ${user.userName}, 类型: ${user.userType}');
           return user;
         } catch (e, stackTrace) {
           debugPrint('解析用户信息出错: $e');
@@ -97,7 +97,7 @@ class AuthService {
 
   // 登录用户
   static Future<AuthResponse> login({
-    required String username,
+    required String userName,
     required String password,
   }) async {
     try {
@@ -106,7 +106,7 @@ class AuthService {
       
       // 创建请求
       var requestBody = {
-        'username': username,
+        'userName': userName,
         'password': password,
       };
 
@@ -266,7 +266,7 @@ class AuthService {
 
   // 注册用户
   static Future<AuthResponse> register({
-    required String username,
+    required String userName,
     required String password,
     required String email,
     required String userType,
@@ -282,7 +282,7 @@ class AuthService {
       
       // 创建请求
       var requestBody = {
-        'username': username,
+        'userName': userName,
         'password': password,
         'email': email,
         'userType': userTypeValue.toString(),
@@ -318,7 +318,7 @@ class AuthService {
           if (responseData['data'] == null) {
             // 创建一个包含注册信息的用户对象
             user = User(
-              username: username,
+              userName: userName,
               email: email,
               userType: userType,
               userProfile: userProfile,

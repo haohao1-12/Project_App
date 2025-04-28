@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _userNameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _userNameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -64,9 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
     // 检查注册结果
     if (result != null && result is Map) {
       // 如果返回了用户名，自动填充
-      if (result.containsKey('username')) {
+      if (result.containsKey('userName')) {
         setState(() {
-          _usernameController.text = result['username'].toString();
+          _userNameController.text = result['userName'].toString();
         });
       }
       
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       try {
         final response = await AuthService.login(
-          username: _usernameController.text,
+          userName: _userNameController.text,
           password: _passwordController.text,
         );
 
@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 CustomTextField(
                   label: '用户名',
                   hint: '请输入您的用户名',
-                  controller: _usernameController,
+                  controller: _userNameController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return '请输入用户名';
