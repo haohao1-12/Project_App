@@ -288,8 +288,10 @@ class TaskCard extends StatelessWidget {
   // 导航到项目详情页面
   void _navigateToProjectDetail(BuildContext context) async {
     final userType = await AuthService.getUserType();
+    bool? refreshNeeded;
+    
     if (userType == '0') { // 项目经理视图
-      Navigator.push(
+      refreshNeeded = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ProjectDetailManagerScreen(
@@ -298,7 +300,7 @@ class TaskCard extends StatelessWidget {
         ),
       );
     } else { // 员工视图
-      Navigator.push(
+      refreshNeeded = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ProjectDetailScreen(
@@ -307,11 +309,16 @@ class TaskCard extends StatelessWidget {
         ),
       );
     }
+    
+    // 只有明确返回true时才刷新任务列表
+    if (refreshNeeded == true) {
+      onTaskUpdated();
+    }
   }
 
   // 导航到用户详情页面
-  void _navigateToUserDetail(BuildContext context) {
-    Navigator.push(
+  void _navigateToUserDetail(BuildContext context) async {
+    final bool? refreshNeeded = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => UserDetailScreen(
@@ -320,6 +327,11 @@ class TaskCard extends StatelessWidget {
         ),
       ),
     );
+    
+    // 只有明确返回true时才刷新任务列表
+    if (refreshNeeded == true) {
+      onTaskUpdated();
+    }
   }
   
   // 标记任务为已完成

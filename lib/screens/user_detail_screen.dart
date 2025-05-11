@@ -68,18 +68,32 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.userName != null ? '${widget.userName}的资料' : '用户详情'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshUserDetail,
-            tooltip: '刷新',
+    return WillPopScope(
+      onWillPop: () async {
+        // 返回false或null，因为在用户详情页不会修改任务状态
+        Navigator.pop(context, false);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.userName != null ? '${widget.userName}的资料' : '用户详情'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshUserDetail,
+              tooltip: '刷新',
+            ),
+          ],
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // 返回false或null，因为在用户详情页不会修改任务状态
+              Navigator.pop(context, false);
+            },
           ),
-        ],
+        ),
+        body: _buildBody(),
       ),
-      body: _buildBody(),
     );
   }
 

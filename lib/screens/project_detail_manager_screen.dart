@@ -22,6 +22,7 @@ class _ProjectDetailManagerScreenState extends State<ProjectDetailManagerScreen>
   bool _isLoading = true;
   String _errorMessage = '';
   ProjectDetailManagerView? _projectDetail;
+  bool _dataChanged = false;
 
   @override
   void initState() {
@@ -91,31 +92,46 @@ class _ProjectDetailManagerScreenState extends State<ProjectDetailManagerScreen>
       ),
     );
     
-    // 如果返回true，刷新项目详情
+    // 如果返回true，刷新项目详情并标记数据已更改
     if (refreshNeeded == true) {
+      _dataChanged = true;
       _refreshProjectDetail();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('项目详情（管理视图）'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshProjectDetail,
-            tooltip: '刷新',
+    return WillPopScope(
+      onWillPop: () async {
+        // 只有在数据真正发生变化时才返回true
+        Navigator.pop(context, _dataChanged);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('项目详情（管理视图）'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshProjectDetail,
+              tooltip: '刷新',
+            ),
+          ],
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // 只有在数据真正发生变化时才返回true
+              Navigator.pop(context, _dataChanged);
+            },
           ),
-        ],
-      ),
-      body: _buildBody(),
-      floatingActionButton: _isLoading || _projectDetail == null ? null : FloatingActionButton(
-        onPressed: _addTasks,
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
-        tooltip: '批量添加任务',
+        ),
+        body: _buildBody(),
+        floatingActionButton: _isLoading || _projectDetail == null ? null : FloatingActionButton(
+          onPressed: _addTasks,
+          backgroundColor: AppTheme.primaryColor,
+          child: const Icon(Icons.add),
+          tooltip: '批量添加任务',
+        ),
       ),
     );
   }

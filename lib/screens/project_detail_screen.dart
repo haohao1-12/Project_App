@@ -22,6 +22,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
   ProjectDetail? _projectDetail;
+  bool _tasksUpdated = false;
 
   @override
   void initState() {
@@ -115,6 +116,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        // 标记任务已更新
+        _tasksUpdated = true;
         _refreshProjectDetail();
       } else {
         // 更新失败，显示错误信息
@@ -143,18 +146,32 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('项目详情'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshProjectDetail,
-            tooltip: '刷新',
+    return WillPopScope(
+      onWillPop: () async {
+        // 只有在任务状态真正发生变化时才返回true
+        Navigator.pop(context, _tasksUpdated);
+        return false; // 阻止默认返回行为，因为我们已经手动处理了
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('项目详情'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _refreshProjectDetail,
+              tooltip: '刷新',
+            ),
+          ],
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // 只有在任务状态真正发生变化时才返回true
+              Navigator.pop(context, _tasksUpdated);
+            },
           ),
-        ],
+        ),
+        body: _buildBody(),
       ),
-      body: _buildBody(),
     );
   }
 
