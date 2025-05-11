@@ -11,6 +11,8 @@ class Task {
   final DateTime? createTime;
   final int updateBy;
   final DateTime? updateTime;
+  final String? projectName; // 项目名称，用于任务列表展示
+  final String? memberName; // 任务负责人名称，用于项目经理查看任务列表
 
   Task({
     required this.id,
@@ -23,6 +25,8 @@ class Task {
     this.createTime,
     required this.updateBy,
     this.updateTime,
+    this.projectName,
+    this.memberName,
   });
 
   // 从JSON创建Task对象
@@ -108,6 +112,8 @@ class Task {
       createTime: createTimeDate,
       updateBy: json['updateBy'] as int,
       updateTime: updateTimeDate,
+      projectName: json['projectName'] as String?, // 添加项目名称字段
+      memberName: json['memberName'] as String?, // 添加成员名称字段
     );
   }
 

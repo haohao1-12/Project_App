@@ -6,6 +6,7 @@ import '../utils/encoding_helper.dart';
 import 'login_screen.dart';
 import 'project_list_screen.dart';  // 导入项目列表页面
 import 'profile_screen.dart';  // 导入个人主页
+import 'task_list_screen.dart';  // 导入任务列表页面
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -153,47 +154,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 任务列表页面
   Widget _buildTasksPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.task_alt,
-            size: 80,
-            color: AppTheme.primaryColor,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '任务列表',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '查看和管理您的任务',
-            style: TextStyle(
-              color: AppTheme.textSecondaryColor,
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: 跳转到任务列表页面
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('功能开发中...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-            icon: const Icon(Icons.search),
-            label: const Text('查看我的任务'),
-          ),
-        ],
-      ),
-    );
+    // 直接返回任务列表页面
+    return const TaskListScreen();
   }
 
   // 个人中心页面
