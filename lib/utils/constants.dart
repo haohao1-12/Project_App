@@ -1,6 +1,8 @@
 class AppConstants {
   // API端点
   static const String baseUrl = 'http://192.168.3.17:4000';
+  // WebSocket端点
+  static const String wsBaseUrl = 'ws://192.168.3.17:4000';
   static const String registerEndpoint = '$baseUrl/user/signup';
   static const String loginEndpoint = '$baseUrl/user/login';
   static const String uploadImageEndpoint = '$baseUrl/common/upload';

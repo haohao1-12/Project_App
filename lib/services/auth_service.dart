@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../utils/constants.dart';
 import '../utils/http_utils.dart';
+import 'message_service.dart';
 
 class AuthResponse {
   final bool success;
@@ -93,6 +94,7 @@ class AuthService {
     await prefs.remove(AppConstants.userKey);
     await prefs.remove(AppConstants.userIdKey);
     await prefs.remove(AppConstants.userTypeKey);
+    await prefs.remove('unread_message_count'); // 清除未读消息数量
   }
 
   // 登录用户
@@ -154,6 +156,9 @@ class AuthService {
               // 保存用户信息和token
               if (token != null) {
                 await saveUserAndToken(user, token);
+                
+                // 登录成功后获取未读消息数量
+                await updateUnreadMessageCount();
               }
               
               return AuthResponse(
@@ -452,9 +457,44 @@ class AuthService {
       await prefs.remove(AppConstants.tokenKey);
       await prefs.remove(AppConstants.userIdKey);
       await prefs.remove(AppConstants.userTypeKey);
+      await prefs.remove('unread_message_count'); // 清除未读消息数量
       debugPrint('已清除所有用户数据');
     } catch (e) {
       debugPrint('清除用户数据失败: $e');
+    }
+  }
+
+  // 保存未读消息数量
+  static Future<void> saveUnreadMessageCount(int count) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('unread_message_count', count);
+      debugPrint('保存未读消息数量: $count');
+    } catch (e) {
+      debugPrint('保存未读消息数量失败: $e');
+    }
+  }
+
+  // 获取未读消息数量
+  static Future<int> getUnreadMessageCount() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getInt('unread_message_count') ?? 0;
+    } catch (e) {
+      debugPrint('获取未读消息数量失败: $e');
+      return 0;
+    }
+  }
+
+  // 更新未读消息数量（从服务器获取）
+  static Future<int> updateUnreadMessageCount() async {
+    try {
+      final count = await MessageService.getUnreadMessageCount();
+      await saveUnreadMessageCount(count);
+      return count;
+    } catch (e) {
+      debugPrint('更新未读消息数量失败: $e');
+      return 0;
     }
   }
 } 

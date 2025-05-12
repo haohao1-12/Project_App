@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 import '../widgets/custom_text_field.dart';
 import '../services/auth_service.dart';
+import '../services/websocket_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart'; // 导入主页面
 
@@ -104,17 +105,20 @@ class _LoginScreenState extends State<LoginScreen> {
         });
 
         if (response.success) {
-          // 登录成功，显示成功消息并跳转到主页
+          // 登录成功，初始化WebSocket连接
+          final wsConnected = await WebSocketService.instance.connect();
+          
+          // 显示成功消息并跳转到主页
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('登录成功'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
+            SnackBar(
+              content: Text(wsConnected ? '登录成功，WebSocket连接已建立' : '登录成功，但WebSocket连接失败'),
+              backgroundColor: wsConnected ? Colors.green : Colors.orange,
+              duration: const Duration(seconds: 2),
             ),
           );
           
           // 延迟跳转，让用户看到成功消息
-          Future.delayed(const Duration(milliseconds: 1000), () {
+          Future.delayed(const Duration(milliseconds: 2000), () {
             if (mounted) {
               _navigateToHome();
             }
